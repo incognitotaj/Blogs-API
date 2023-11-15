@@ -1,9 +1,20 @@
+using Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var config = builder.Configuration;
+
+builder.Services.AddDbContext<BlogContext>(
+    x => x.UseSqlServer(
+        config.GetConnectionString("BlogConnection"),
+        options =>
+        {
+            //TODO: Here we can configure for Split Query Options
+        })
+    );
 
 builder.Services.AddControllers();
 
@@ -15,7 +26,7 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1",
         Title = "Blogs API",
         Description = "An ASP.NET Core Web API to manage Blogs",
-        TermsOfService= new Uri("https://github.com/incognitotaj"),
+        TermsOfService = new Uri("https://github.com/incognitotaj"),
         Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
             Name = "Salman Taj",
@@ -23,7 +34,7 @@ builder.Services.AddSwaggerGen(options =>
         },
         License = new Microsoft.OpenApi.Models.OpenApiLicense
         {
-            Name= "License",
+            Name = "License",
             Url = new Uri("https://www.linkedin.com/in/salman-horizons/")
         }
     });
