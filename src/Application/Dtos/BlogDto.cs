@@ -1,14 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.Dtos;
+﻿namespace Application.Dtos;
 
 public class BlogDto
 {
     public Guid Id { get; set; }
     public string Title { get; set; }
     public string Description { get; set; }
+    public List<CommentDto> Comments { get; set; }
+
+    public BlogDto()
+    {
+        Comments = new List<CommentDto>();
+    }
 }

@@ -29,6 +29,10 @@ public class AccountsController : ControllerBase
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Get user details
+    /// </summary>
+    /// <returns></returns>
     [HttpGet("user-info")]
     [Authorize]
     public async Task<ActionResult<UserDto>> GetCurrentUser()

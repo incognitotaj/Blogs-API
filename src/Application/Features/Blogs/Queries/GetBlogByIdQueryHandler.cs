@@ -21,7 +21,7 @@ public class GetBlogByIdQueryHandler : IRequestHandler<GetBlogByIdQuery, BlogDto
 
     public async Task<BlogDto> Handle(GetBlogByIdQuery request, CancellationToken cancellationToken)
     {
-        var entity = await _blogRepository.GetByIdAsync(request.BlogId);
+        var entity = await _blogRepository.GetByIdAsync(request.BlogId).ConfigureAwait(false);
         if (entity == null)
         {
             _logger.LogError($"Error: Blog does not exist");

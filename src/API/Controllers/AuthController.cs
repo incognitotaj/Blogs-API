@@ -28,6 +28,11 @@ public class AuthController : ControllerBase
         _mapper = mapper;
     }
 
+    /// <summary>
+    /// Login an existing user
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("login")]
     public async Task<ActionResult<UserDto>> Login(LoginRequest request)
     {
@@ -52,6 +57,11 @@ public class AuthController : ControllerBase
         });
     }
 
+    /// <summary>
+    /// Register / create a new user
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("register")]
     public async Task<ActionResult<UserDto>> Register(RegisterUserRequest request)
     {

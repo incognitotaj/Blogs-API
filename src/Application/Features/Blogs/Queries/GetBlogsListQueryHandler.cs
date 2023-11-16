@@ -19,7 +19,7 @@ public class GetBlogsListQueryHandler : IRequestHandler<GetBlogsListQuery, List<
     public async Task<List<BlogDto>> Handle(GetBlogsListQuery request, CancellationToken cancellationToken)
     {
         var resultList = await _blogRepository.GetAsync(
-                predicate: null, orderBy: null, includeString: string.Empty, disableTracking: true);
+                predicate: null, orderBy: null, includeString: "Comments", disableTracking: true).ConfigureAwait(false);
 
         return _mapper.Map<List<BlogDto>>(resultList);
     }
