@@ -1,4 +1,9 @@
+using Application;
+using Application.Responses;
+using AutoWrapper;
+using Infrastructure;
 using Infrastructure.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -61,14 +66,40 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices();
+builder.Services.AddIdentityServices(config);
+
 var app = builder.Build();
+
+using var scope = app.Services.CreateAsyncScope();
+var services = scope.ServiceProvider;
+var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+
+try
+{
+
+    var context = services.GetRequiredService<BlogContext>();
+    await context.Database.MigrateAsync();
+
+    //var contextIdentity = services.GetRequiredService<AppIdentityDbContext>();
+    //await contextIdentity.Database.MigrateAsync();
+
+    //var userManager = scope.ServiceProvider.GetService<UserManager<IdentityUser>>();
+    //await IdentityDataSeeder.SeedAsync(userManager);
+}
+catch (Exception ex)
+{
+    var logger = loggerFactory.CreateLogger<Program>();
+    logger.LogError(ex.Message);
+}
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blogs API v1");
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blogs API");
         options.RoutePrefix = string.Empty;
         options.DocExpansion(DocExpansion.None);
     });
@@ -79,5 +110,13 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+//app.UseApiResponseAndExceptionWrapper<MapApiResponse>(new AutoWrapperOptions
+//{
+//    IgnoreNullValue = false,
+//    ShowApiVersion = true,
+//    ShowStatusCode = true,
+//    ShowIsErrorFlagForSuccessfulResponse = true,
+//});
 
 app.Run();
