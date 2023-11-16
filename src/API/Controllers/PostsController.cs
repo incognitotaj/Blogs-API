@@ -12,7 +12,7 @@ namespace API.Controllers;
 [Route("api/Posts")]
 [ApiController]
 [Produces("application/json")]
-//[Authorize]
+[Authorize]
 public class PostsController : BaseApiController
 {
     private readonly IMediator _mediator;

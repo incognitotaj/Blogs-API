@@ -4,6 +4,7 @@ using Application.Features.Comments.Commands;
 using Application.Features.Comments.Queries;
 using Application.Responses;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -12,7 +13,7 @@ namespace API.Controllers;
 [Route("api/Posts/{blogId}/Comments")]
 [ApiController]
 [Produces("application/json")]
-//[Authorize]
+[Authorize]
 public class CommentsController : BaseApiController
 {
     private readonly IMediator _mediator;

@@ -1,8 +1,10 @@
 ﻿using Application.Contracts.Persistence;
+using Application.Contracts.Services;
 using Application.Dtos;
 using Application.Responses;
 using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Comments.Queries;
@@ -13,21 +15,36 @@ public class GetCommentByIdQueryHandler : IRequestHandler<GetCommentByIdQuery, R
     private readonly IBlogRepository _blogRepository;
     private readonly ICommentRepository _commentRepository;
     private readonly ILogger<GetCommentByIdQueryHandler> _logger;
+    private readonly ICacheService _cacheService;
+    private readonly IConfiguration _configuration;
 
     public GetCommentByIdQueryHandler(
         IBlogRepository blogRepository,
         ICommentRepository commentRepository,
         IMapper mapper,
-        ILogger<GetCommentByIdQueryHandler> logger)
+        ILogger<GetCommentByIdQueryHandler> logger,
+        ICacheService cacheService,
+        IConfiguration configuration)
     {
         _blogRepository = blogRepository;
         _commentRepository = commentRepository;
         _mapper = mapper;
         _logger = logger;
+        _cacheService = cacheService;
+        _configuration = configuration;
     }
 
     public async Task<Result<CommentDto>> Handle(GetCommentByIdQuery request, CancellationToken cancellationToken)
     {
+        if (_configuration.GetValue<bool>("Redis:IsEnabled"))
+        {
+            var cachedData = _cacheService.GetData<CommentDto>($"comment-{request.BlogId}");
+            if (cachedData != null)
+            {
+                return Result<CommentDto>.Success(cachedData);
+            }
+        }
+
         var entityMain = await _blogRepository.GetByIdAsync(request.BlogId).ConfigureAwait(false);
         if (entityMain == null)
         {
@@ -41,6 +58,11 @@ public class GetCommentByIdQueryHandler : IRequestHandler<GetCommentByIdQuery, R
             return Result<CommentDto>.Failure($"Comment does not exist");
         }
 
-        return Result<CommentDto>.Success(_mapper.Map<CommentDto>(comment));
+        var result = _mapper.Map<CommentDto>(comment);
+        
+        if (_configuration.GetValue<bool>("Redis:IsEnabled"))
+            _cacheService.SetData($"comment-{request.BlogId}", result, DateTimeOffset.Now.AddMinutes(15));
+        
+        return Result<CommentDto>.Success(result);
     }
 }

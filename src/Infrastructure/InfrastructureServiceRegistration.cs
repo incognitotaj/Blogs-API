@@ -24,6 +24,7 @@ public static class InfrastructureServiceRegistration
 
         services.AddScoped<IFileUploadOnServerService, FileUploadOnServerService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<ICacheService, CacheService>();
 
 
         var builder = services.AddIdentityCore<IdentityUser>();
@@ -50,7 +51,7 @@ public static class InfrastructureServiceRegistration
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config["Token:Key"])),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.GetValue<string>("Token:Key"))),
                     ValidateIssuer = true,
                     ValidIssuer = config["Token:Issuer"],
                     ValidateAudience= false,
