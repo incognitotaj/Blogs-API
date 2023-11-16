@@ -10,7 +10,11 @@ public class CommentProfile : Profile
     public CommentProfile()
     {
         CreateMap<Comment, CommentDto>();
-        CreateMap<Comment, CreateCommentCommand>().ReverseMap();
-        CreateMap<Comment, UpdateCommentCommand>().ReverseMap();
+
+        CreateMap<Comment, CreateCommentCommand>()
+            .ReverseMap();
+
+        CreateMap<Comment, UpdateCommentCommand>()
+            .ReverseMap();
     }
 }

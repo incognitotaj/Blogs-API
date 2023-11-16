@@ -2,18 +2,18 @@
 using Application.Dtos;
 using Application.Features.Comments.Commands;
 using Application.Features.Comments.Queries;
+using Application.Responses;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
 namespace API.Controllers;
 
-[Route("api/Posts/{postId}/Comments")]
+[Route("api/Posts/{blogId}/Comments")]
 [ApiController]
 [Produces("application/json")]
-[Authorize]
-public class CommentsController : ControllerBase
+//[Authorize]
+public class CommentsController : BaseApiController
 {
     private readonly IMediator _mediator;
 
@@ -23,13 +23,16 @@ public class CommentsController : ControllerBase
     }
 
     /// <summary>
-    /// Get specific comments by ID
+    /// Returns Collection of Comments for the specific Blog
     /// </summary>
+    /// <param name="blogId"></param>
+    /// <param name="commentId"></param>
     /// <returns></returns>
     [HttpGet("{commentId}")]
-    [ProducesResponseType(typeof(IEnumerable<CommentDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(Result<CommentDto>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<IEnumerable<CommentDto>>> Get(string blogId, string commentId)
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> Get(string blogId, string commentId)
     {
         var query = new GetCommentByIdQuery()
         {
@@ -39,7 +42,7 @@ public class CommentsController : ControllerBase
 
         var result = await _mediator.Send(query);
 
-        return result == null ? NotFound() : Ok(result);
+        return HandleResult(result);
     }
 
     /// <summary>
@@ -48,9 +51,10 @@ public class CommentsController : ControllerBase
     /// <param name="blogId"></param>
     /// <returns></returns>
     [HttpGet()]
-    [ProducesResponseType(typeof(IEnumerable<CommentDto>), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(Result<IEnumerable<CommentDto>>), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<IEnumerable<CommentDto>>> GetByProject(string blogId)
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> GetByBlog(string blogId)
     {
         var query = new GetCommentByBlogIdQuery
         {
@@ -68,15 +72,17 @@ public class CommentsController : ControllerBase
     /// <returns></returns>
     [HttpPost()]
     [ProducesResponseType((int)HttpStatusCode.Created)]
-    public async Task<ActionResult<Guid>> Create(string blogId, [FromBody] CreateCommentRequest request)
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> Create(string blogId, [FromBody] CreateCommentRequest request)
     {
         var command = new CreateCommentCommand
         {
             BlogId = Guid.Parse(blogId),
             Description = request.Description,
         };
+
         var result = await _mediator.Send(command);
-        return Ok(result);
+        return HandleResult(result);
     }
 
     /// <summary>
@@ -88,15 +94,16 @@ public class CommentsController : ControllerBase
     [HttpPut()]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult> Update(string blogId, [FromBody] UpdateCommentRequest request)
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> Update(string blogId, [FromBody] UpdateCommentRequest request)
     {
         var command = new UpdateCommentCommand
         {
             BlogId = Guid.Parse(blogId),
             CommentId = request.CommentId,
         };
-        await _mediator.Send(command);
-        return NoContent();
+        var result = await _mediator.Send(command);
+        return HandleResult(result);
     }
 
     /// <summary>
@@ -108,14 +115,15 @@ public class CommentsController : ControllerBase
     [HttpDelete("{commentId}")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult> Delete(string blogId, string commentId)
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> Delete(string blogId, string commentId)
     {
         var command = new DeleteCommentCommand()
         {
             BlogId = Guid.Parse(blogId),
             CommentId = Guid.Parse(commentId)
         };
-        await _mediator.Send(command);
-        return NoContent();
+        var result = await _mediator.Send(command);
+        return HandleResult(result);
     }
 }

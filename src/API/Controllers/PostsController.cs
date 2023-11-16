@@ -12,8 +12,8 @@ namespace API.Controllers;
 [Route("api/Posts")]
 [ApiController]
 [Produces("application/json")]
-[Authorize]
-public class PostsController : ControllerBase
+//[Authorize]
+public class PostsController : BaseApiController
 {
     private readonly IMediator _mediator;
 
@@ -28,11 +28,14 @@ public class PostsController : ControllerBase
     /// <returns></returns>
     [HttpGet()]
     [ProducesResponseType(typeof(IEnumerable<BlogDto>), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<IEnumerable<BlogDto>>> Get()
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> Get()
     {
         var query = new GetBlogsListQuery();
 
-        return Ok(await _mediator.Send(query));
+        var result = await _mediator.Send(query);
+
+        return HandleResult(result);
     }
 
     /// <summary>
@@ -43,7 +46,8 @@ public class PostsController : ControllerBase
     [HttpGet("{blogId}")]
     [ProducesResponseType(typeof(BlogDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
-    public async Task<ActionResult<BlogDto>> GetById(string blogId)
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
+    public async Task<IActionResult> GetById(string blogId)
     {
         var query = new GetBlogByIdQuery()
         {
@@ -52,16 +56,17 @@ public class PostsController : ControllerBase
 
         var result = await _mediator.Send(query);
 
-        return result == null ? NotFound() : Ok(result);
+        return HandleResult(result);
     }
 
     /// <summary>
     /// Creates / register a new blog
     /// </summary>
-    /// <param name="command"></param>
+    /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost()]
     [ProducesResponseType((int)HttpStatusCode.Created)]
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
     public async Task<ActionResult<Guid>> Create([FromBody] CreateBlogRequest request)
     {
         var command = new CreateBlogCommand()
@@ -71,17 +76,19 @@ public class PostsController : ControllerBase
         };
 
         var result = await _mediator.Send(command);
-        return Ok(result);
+        return HandleResult(result);
     }
 
     /// <summary>
     /// Updates an existing blog
     /// </summary>
-    /// <param name="command"></param>
+    /// <param name="blogId">Blog id of the existing record</param>
+    /// <param name="request"></param>
     /// <returns></returns>
     [HttpPut("{blogId}")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
     public async Task<ActionResult> Update(string blogId, [FromBody] UpdateBlogRequest request)
     {
         var command = new UpdateBlogCommand()
@@ -91,8 +98,8 @@ public class PostsController : ControllerBase
             Title = request.Title,
         };
 
-        await _mediator.Send(command);
-        return NoContent();
+        var result = await _mediator.Send(command);
+        return HandleResult(result);
     }
 
     /// <summary>
@@ -103,13 +110,14 @@ public class PostsController : ControllerBase
     [HttpDelete("{blogId}")]
     [ProducesResponseType((int)HttpStatusCode.NoContent)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
+    [ProducesResponseType((int)HttpStatusCode.Unauthorized)]
     public async Task<ActionResult> Delete(string blogId)
     {
         var command = new DeleteBlogCommand()
         {
             BlogId = Guid.Parse(blogId)
         };
-        await _mediator.Send(command);
-        return NoContent();
+        var result = await _mediator.Send(command);
+        return HandleResult(result);
     }
 }

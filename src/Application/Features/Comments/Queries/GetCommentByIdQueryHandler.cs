@@ -1,14 +1,13 @@
 ﻿using Application.Contracts.Persistence;
 using Application.Dtos;
-using Application.Exceptions;
+using Application.Responses;
 using AutoMapper;
-using Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Comments.Queries;
 
-public class GetCommentByIdQueryHandler : IRequestHandler<GetCommentByIdQuery, CommentDto>
+public class GetCommentByIdQueryHandler : IRequestHandler<GetCommentByIdQuery, Result<CommentDto>>
 {
     private readonly IMapper _mapper;
     private readonly IBlogRepository _blogRepository;
@@ -17,8 +16,8 @@ public class GetCommentByIdQueryHandler : IRequestHandler<GetCommentByIdQuery, C
 
     public GetCommentByIdQueryHandler(
         IBlogRepository blogRepository,
-        ICommentRepository commentRepository, 
-        IMapper mapper, 
+        ICommentRepository commentRepository,
+        IMapper mapper,
         ILogger<GetCommentByIdQueryHandler> logger)
     {
         _blogRepository = blogRepository;
@@ -27,24 +26,21 @@ public class GetCommentByIdQueryHandler : IRequestHandler<GetCommentByIdQuery, C
         _logger = logger;
     }
 
-    public async Task<CommentDto> Handle(GetCommentByIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<CommentDto>> Handle(GetCommentByIdQuery request, CancellationToken cancellationToken)
     {
-        Comment? comment = null;
-
         var entityMain = await _blogRepository.GetByIdAsync(request.BlogId).ConfigureAwait(false);
         if (entityMain == null)
         {
             _logger.LogError($"Error: Blog does not exist");
+            return Result<CommentDto>.Failure($"Blog does not exist");
         }
-        else
+        var comment = await _commentRepository.GetByIdAsync(request.CommentId).ConfigureAwait(false);
+        if (comment == null)
         {
-            comment = await _commentRepository.GetByIdAsync(request.CommentId).ConfigureAwait(false);
-            if (comment == null)
-            {
-                _logger.LogError($"Error: Comment does not exist");
-            }
+            _logger.LogError($"Error: Comment does not exist");
+            return Result<CommentDto>.Failure($"Comment does not exist");
         }
 
-        return _mapper.Map<CommentDto>(comment);
+        return Result<CommentDto>.Success(_mapper.Map<CommentDto>(comment));
     }
 }

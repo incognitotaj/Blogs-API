@@ -1,9 +1,7 @@
+using API.Middlewares;
 using Application;
-using Application.Responses;
-using AutoWrapper;
 using Infrastructure;
 using Infrastructure.Data;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerUI;
@@ -99,6 +97,8 @@ catch (Exception ex)
     logger.LogError(ex.Message);
 }
 
+app.UseMiddleware<ExceptionMiddleware>();
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -115,13 +115,5 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
-
-//app.UseApiResponseAndExceptionWrapper<MapApiResponse>(new AutoWrapperOptions
-//{
-//    IgnoreNullValue = false,
-//    ShowApiVersion = true,
-//    ShowStatusCode = true,
-//    ShowIsErrorFlagForSuccessfulResponse = true,
-//});
 
 app.Run();

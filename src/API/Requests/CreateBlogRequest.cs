@@ -1,4 +1,6 @@
-﻿namespace API.Requests;
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace API.Requests;
 
 public class CreateBlogRequest
 {

@@ -1,5 +1,5 @@
 ﻿using Application.Contracts.Persistence;
-using Application.Exceptions;
+using Application.Responses;
 using AutoMapper;
 using Domain.Entities;
 using MediatR;
@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Blogs.Commands;
 
-public class UpdateBlogCommandHandler : IRequestHandler<UpdateBlogCommand>
+public class UpdateBlogCommandHandler : IRequestHandler<UpdateBlogCommand, Result<Unit>>
 {
     private readonly IBlogRepository _blogRepository;
     private readonly IMapper _mapper;
@@ -21,12 +21,13 @@ public class UpdateBlogCommandHandler : IRequestHandler<UpdateBlogCommand>
     }
 
 
-    public async Task<Unit> Handle(UpdateBlogCommand request, CancellationToken cancellationToken)
+    public async Task<Result<Unit>> Handle(UpdateBlogCommand request, CancellationToken cancellationToken)
     {
         var entityToUpdate = await _blogRepository.GetByIdAsync(request.BlogId);
         if (entityToUpdate == null)
         {
-            _logger.LogError($"Error: Project does not exist");
+            _logger.LogError($"Error: Blog does not exist");
+            return Result<Unit>.Failure($"Blog does not exist");
         }
 
         _mapper.Map(request, entityToUpdate, typeof(UpdateBlogCommand), typeof(Blog));
@@ -35,6 +36,6 @@ public class UpdateBlogCommandHandler : IRequestHandler<UpdateBlogCommand>
 
         _logger.LogInformation($"Blog {entityToUpdate.Id} successfully updated");
 
-        return Unit.Value;
+        return Result<Unit>.Success(Unit.Value);
     }
 }

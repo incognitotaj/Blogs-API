@@ -1,13 +1,13 @@
 ﻿using Application.Contracts.Persistence;
 using Application.Dtos;
+using Application.Responses;
 using AutoMapper;
-using Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Comments.Queries;
 
-public class GetCommentByBlogIdQueryHandler : IRequestHandler<GetCommentByBlogIdQuery, IEnumerable<CommentDto>>
+public class GetCommentByBlogIdQueryHandler : IRequestHandler<GetCommentByBlogIdQuery, Result<IEnumerable<CommentDto>>>
 {
     private readonly IBlogRepository _blogRepository;
     private readonly ICommentRepository _commentRepository;
@@ -15,9 +15,9 @@ public class GetCommentByBlogIdQueryHandler : IRequestHandler<GetCommentByBlogId
     private readonly ILogger<GetCommentByBlogIdQueryHandler> _logger;
 
     public GetCommentByBlogIdQueryHandler(
-        IBlogRepository blogRepository, 
-        ICommentRepository commentRepository, 
-        IMapper mapper, 
+        IBlogRepository blogRepository,
+        ICommentRepository commentRepository,
+        IMapper mapper,
         ILogger<GetCommentByBlogIdQueryHandler> logger)
     {
         _blogRepository = blogRepository;
@@ -26,19 +26,17 @@ public class GetCommentByBlogIdQueryHandler : IRequestHandler<GetCommentByBlogId
         _logger = logger;
     }
 
-    public async Task<IEnumerable<CommentDto>> Handle(GetCommentByBlogIdQuery request, CancellationToken cancellationToken)
+    public async Task<Result<IEnumerable<CommentDto>>> Handle(GetCommentByBlogIdQuery request, CancellationToken cancellationToken)
     {
-        IEnumerable<Comment>? comments = null;
         var entity = await _blogRepository.GetByIdAsync(request.BlogId).ConfigureAwait(false);
         if (entity == null)
         {
             _logger.LogError($"Error: Blog does not exist");
+            return Result<IEnumerable<CommentDto>>.Failure($"Blog does not exist");
         }
-        else
-        {
-            comments = await _commentRepository.GetByBlogIdAsync(entity.Id).ConfigureAwait(false);
-        }
+        
+        var comments = await _commentRepository.GetByBlogIdAsync(entity.Id).ConfigureAwait(false);
 
-        return _mapper.Map<IEnumerable<CommentDto>>(comments);
+        return Result<IEnumerable<CommentDto>>.Success(_mapper.Map<IEnumerable<CommentDto>>(comments));
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Application.Contracts.Persistence;
+using Application.Responses;
 using AutoMapper;
 using Domain.Entities;
 using MediatR;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Application.Features.Comments.Commands
 {
-    public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand>
+    public class UpdateCommentCommandHandler : IRequestHandler<UpdateCommentCommand, Result<Unit>>
     {
         private readonly IBlogRepository _blogRepository;
         private readonly ICommentRepository _commentRepository;
@@ -25,28 +26,28 @@ namespace Application.Features.Comments.Commands
             _logger = logger;
         }
 
-        public async Task<Unit> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
+        public async Task<Result<Unit>> Handle(UpdateCommentCommand request, CancellationToken cancellationToken)
         {
             var entityMain = await _blogRepository.GetByIdAsync(request.BlogId);
             if (entityMain == null)
             {
                 _logger.LogError($"Error: Blog does not exist");
+                return Result<Unit>.Failure($"Blog does not exist");
             }
-            else
+
+            var entityToUpdate = await _commentRepository.GetByIdAsync(request.CommentId);
+            if (entityToUpdate == null)
             {
-                var entityToUpdate = await _commentRepository.GetByIdAsync(request.CommentId);
-                if (entityToUpdate == null)
-                {
-                    _logger.LogError($"Error: Comment does not exist");
-                }
-
-                _mapper.Map(request, entityToUpdate, typeof(UpdateCommentCommand), typeof(Comment));
-
-                await _commentRepository.UpdateAsync(entityToUpdate).ConfigureAwait(false);
-
-                _logger.LogInformation($"Comment {entityToUpdate.Id} successfully updated");
+                _logger.LogError($"Error: Comment does not exist");
+                return Result<Unit>.Failure($"Comment does not exist");
             }
-            return Unit.Value;
+
+            _mapper.Map(request, entityToUpdate, typeof(UpdateCommentCommand), typeof(Comment));
+
+            await _commentRepository.UpdateAsync(entityToUpdate).ConfigureAwait(false);
+
+            _logger.LogInformation($"Comment {entityToUpdate.Id} successfully updated");
+            return Result<Unit>.Success(Unit.Value);
         }
     }
 }

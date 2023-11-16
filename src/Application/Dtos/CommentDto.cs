@@ -9,6 +9,6 @@ namespace Application.Dtos;
 
 public class CommentDto
 {
-    public Guid CommentId { get; set; }
+    public Guid Id { get; set; }
     public string Description { get; set; }
 }
