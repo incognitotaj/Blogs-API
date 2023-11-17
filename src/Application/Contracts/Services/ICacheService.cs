@@ -14,7 +14,7 @@ public interface ICacheService
     /// <typeparam name="T"></typeparam>
     /// <param name="key"></param>
     /// <returns></returns>
-    T GetData<T>(string key);
+    T? GetData<T>(string key);
 
     /// <summary>
     /// Set Data with Value and Expiration Time of Key

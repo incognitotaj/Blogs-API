@@ -48,12 +48,15 @@ public static class InfrastructureServiceRegistration
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options=>
             {
+                var key = config.GetValue<string>("Token:Key");
+                var issuer = config.GetValue<string>("Token:Issuer");
+
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(config.GetValue<string>("Token:Key"))),
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                     ValidateIssuer = true,
-                    ValidIssuer = config["Token:Issuer"],
+                    ValidIssuer = issuer,
                     ValidateAudience= false,
                 };
             });

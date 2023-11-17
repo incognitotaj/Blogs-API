@@ -19,14 +19,16 @@ public class CacheService : ICacheService
     private void ConfigureRedis()
     {
         var redisUrl = _configuration.GetValue<string>("Redis:Url");
-        if (!string.IsNullOrEmpty(redisUrl))
+        var isEnabled = _configuration.GetValue<bool>("Redis:IsEnabled");
+
+        if (!string.IsNullOrEmpty(redisUrl) && isEnabled)
         {
             var redis = ConnectionMultiplexer.Connect(redisUrl);
             _db = redis.GetDatabase();
         }
     }
 
-    public T GetData<T>(string key)
+    public T? GetData<T>(string key)
     {
         var value = _db.StringGet(key);
         if (!string.IsNullOrEmpty(value))
