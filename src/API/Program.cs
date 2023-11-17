@@ -115,16 +115,16 @@ catch (Exception ex)
 
 app.UseMiddleware<ExceptionMiddleware>();
 
-if (app.Environment.IsDevelopment())
+//if (app.Environment.IsDevelopment())
+//{
+app.UseSwagger();
+app.UseSwaggerUI(options =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blogs API");
-        options.RoutePrefix = string.Empty;
-        options.DocExpansion(DocExpansion.None);
-    });
-}
+    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Blogs API");
+    options.RoutePrefix = string.Empty;
+    options.DocExpansion(DocExpansion.None);
+});
+//}
 
 app.UseHttpsRedirection();
 
